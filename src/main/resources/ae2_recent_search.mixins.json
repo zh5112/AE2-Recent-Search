@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.zzy51.ae2recentsearch.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "AEBaseScreenAccessor",
+    "AEBaseScreenMixin",
+    "EditBoxAccessor",
+    "MEStorageScreenMixin",
+    "VerticalButtonBarAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,16 @@
+pluginManagement {
+    repositories {
+        maven {
+            url = file(".local-maven")
+        }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == "net.neoforged.moddev") {
+                useModule("net.neoforged:moddev-gradle:${requested.version}")
+            }
+        }
+    }
+}

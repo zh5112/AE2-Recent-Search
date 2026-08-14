@@ -1,0 +1,128 @@
+package com.zzy51.ae2recentsearch.mixin;
+
+import org.lwjgl.glfw.GLFW;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import appeng.client.gui.AEBaseScreen;
+import appeng.client.gui.me.common.MEStorageScreen;
+import appeng.client.gui.widgets.AETextField;
+import appeng.core.AEConfig;
+import appeng.integration.abstraction.ItemListMod;
+import appeng.menu.me.common.MEStorageMenu;
+
+import com.zzy51.ae2recentsearch.client.RecentSearchOverlay;
+import com.zzy51.ae2recentsearch.client.RecentSearchScreenAccess;
+import com.zzy51.ae2recentsearch.client.SearchHistoryStore;
+
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+
+@Mixin(MEStorageScreen.class)
+public abstract class MEStorageScreenMixin<C extends MEStorageMenu> implements RecentSearchScreenAccess {
+    @Shadow
+    @Final
+    private AETextField searchField;
+
+    @Override
+    public AETextField ae2RecentSearch$getSearchField() {
+        return searchField;
+    }
+
+    @Unique
+    private void ae2RecentSearch$recordCurrentSearch() {
+        if (searchField != null) {
+            SearchHistoryStore.record(searchField.getValue());
+        }
+    }
+
+    @Unique
+    private void ae2RecentSearch$setValueWithoutSearch(String value) {
+        var editBox = (EditBoxAccessor) searchField;
+        var responder = editBox.ae2RecentSearch$getResponder();
+        editBox.ae2RecentSearch$setResponder(null);
+        searchField.setValue(value);
+        editBox.ae2RecentSearch$setResponder(responder);
+    }
+
+    @Unique
+    @SuppressWarnings("unchecked")
+    private void ae2RecentSearch$setScreenFocus(GuiEventListener listener) {
+        ((AEBaseScreen<C>) (Object) this).setFocused(listener);
+    }
+
+    @Unique
+    private void ae2RecentSearch$syncExternalSearch(String value) {
+        if (SearchHistoryStore.isSyncExternalSearch()
+                && AEConfig.instance().isSyncWithExternalSearch()
+                && ItemListMod.isEnabled()) {
+            ItemListMod.setSearchText(value);
+        }
+    }
+
+    @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
+    private void ae2RecentSearch$handleRecentSearchClick(
+            double x,
+            double y,
+            int button,
+            CallbackInfoReturnable<Boolean> cir) {
+        if (RecentSearchOverlay.isMouseOver(searchField, x, y)) {
+            var value = RecentSearchOverlay.getClickedValue(searchField, x, y);
+            if (button == 0 && value != null) {
+                SearchHistoryStore.record(value);
+                if (SearchHistoryStore.isApplyOnClick()) {
+                    searchField.setValue(value);
+                    ae2RecentSearch$syncExternalSearch(value);
+                    searchField.setFocused(false);
+                    ae2RecentSearch$setScreenFocus(null);
+                } else {
+                    ae2RecentSearch$setValueWithoutSearch(value);
+                    searchField.setFocused(true);
+                    ae2RecentSearch$setScreenFocus(searchField);
+                }
+            }
+            cir.setReturnValue(true);
+            return;
+        }
+
+        if (searchField != null
+                && searchField.isFocused()
+                && !searchField.isMouseOver(x, y)
+                && !RecentSearchOverlay.isMouseOver(searchField, x, y)) {
+            ae2RecentSearch$recordCurrentSearch();
+        }
+    }
+
+    @Inject(method = "renderTooltip", at = @At("HEAD"), cancellable = true)
+    private void ae2RecentSearch$hideTooltipBelowRecentSearch(
+            GuiGraphics graphics,
+            int mouseX,
+            int mouseY,
+            CallbackInfo ci) {
+        if (RecentSearchOverlay.isMouseOver(searchField, mouseX, mouseY)) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "keyPressed", at = @At("HEAD"))
+    private void ae2RecentSearch$recordOnEnter(
+            int keyCode,
+            int scanCode,
+            int modifiers,
+            CallbackInfoReturnable<Boolean> cir) {
+        if (searchField != null && searchField.isFocused() && keyCode == GLFW.GLFW_KEY_ENTER) {
+            ae2RecentSearch$recordCurrentSearch();
+        }
+    }
+
+    @Inject(method = "removed", at = @At("HEAD"))
+    private void ae2RecentSearch$recordOnRemoved(CallbackInfo ci) {
+        ae2RecentSearch$recordCurrentSearch();
+    }
+}
