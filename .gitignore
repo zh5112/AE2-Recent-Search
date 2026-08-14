@@ -1,5 +1,5 @@
 ### Gradle ###
-.gradle
+.gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/**/build/
@@ -20,7 +20,7 @@ out/
 .eclipse/
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
 .sts4-cache
 bin/
@@ -29,8 +29,9 @@ bin/
 ### VS Code ###
 .vscode/
 
-### Mac OS ###
+### OS ###
 .DS_Store
+Thumbs.db
 
 ### Minecraft Modding ###
 run/
@@ -45,6 +46,5 @@ repo/
 gradle-*.zip
 /appliedenergistics2-*.jar
 crash-analysis-*/
-错误报告-*.zip
 *.lnk
-发布版本/
+local-files/
