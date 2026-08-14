@@ -1,25 +1,53 @@
+# AE2 Recent Search
 
-Installation information
-=======
+AE2 Recent Search is a client-side addon for [Applied Energistics 2](https://github.com/AppliedEnergistics/Applied-Energistics-2) on Minecraft 1.21.1 with NeoForge.
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+It adds recent search history to AE2 terminals, making it easier to reuse previous searches such as item names, mod filters, tag filters, and other AE2 search expressions.
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+## Features
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+- Shows recent searches below the AE2 terminal search box.
+- Stores history locally per Minecraft account.
+- Keeps exact duplicate searches as one entry and moves reused searches to the top.
+- Supports special AE2 search syntax such as `@mod`, `#tag`, `$tooltip`, and `*id`.
+- Lets history entries either search immediately or only fill the search box.
+- Adds an in-terminal settings page for enabling, clearing, and changing recent-search behavior.
+- Can optionally sync clicked recent searches to JEI/REI through AE2's external search integration.
+- Uses an AE2-style UI instead of a separate config-only workflow.
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+## Requirements
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+- Minecraft `1.21.1`
+- NeoForge
+- Applied Energistics 2 `19.2.17` or newer
+
+JEI or REI is optional. External search sync only applies when AE2's own external search sync is enabled.
+
+## Usage
+
+Open an AE2 terminal and click the search box. If recent searches exist, they appear directly below the search field.
+
+Clicking an entry applies it according to the terminal setting:
+
+- `Click: Search` applies the search immediately and closes the recent-search popup.
+- `Click: Fill` only fills the search box so you can edit the text before searching.
+
+The recent-search settings are available from AE2's terminal settings screen.
+
+## Configuration
+
+The visible history count is controlled by the client config:
+
+```toml
+maxVisibleEntries = 10
+```
+
+Per-player history and in-game toggle states are stored locally in the Minecraft instance config folder.
+
+## Notes
+
+This mod is client-side convenience UI for AE2 terminals. It does not add storage behavior, network mechanics, items, or blocks.
+
+## License
+
+MIT
