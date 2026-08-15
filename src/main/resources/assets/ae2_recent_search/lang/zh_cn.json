@@ -5,6 +5,10 @@
   "ae2_recent_search.configuration.maxVisibleEntries": "\u663e\u793a\u7684\u6700\u8fd1\u641c\u7d22\u6570\u91cf",
   "ae2_recent_search.button.enabled_on": "\u6700\u8fd1\u641c\u7d22\uff1a\u5f00",
   "ae2_recent_search.button.enabled_off": "\u6700\u8fd1\u641c\u7d22\uff1a\u5173",
+  "ae2_recent_search.button.delete_buttons_on": "\u5220\u9664\uff1a\u5f00",
+  "ae2_recent_search.button.delete_buttons_off": "\u5220\u9664\uff1a\u5173",
+  "ae2_recent_search.button.favorites_on": "\u6536\u85cf\uff1a\u5f00",
+  "ae2_recent_search.button.favorites_off": "\u6536\u85cf\uff1a\u5173",
   "ae2_recent_search.button.apply_on": "\u70b9\u51fb\uff1a\u7acb\u5373\u641c\u7d22",
   "ae2_recent_search.button.apply_off": "\u70b9\u51fb\uff1a\u4ec5\u586b\u5165",
   "ae2_recent_search.button.sync_external_on": "JEI \u540c\u6b65\uff1a\u5f00",
@@ -12,9 +16,10 @@
   "ae2_recent_search.button.clear": "\u6e05\u7a7a",
   "ae2_recent_search.settings.title": "\u6700\u8fd1\u641c\u7d22\u8bbe\u7f6e",
   "ae2_recent_search.settings.history": "\u5386\u53f2\u8bb0\u5f55",
-  "ae2_recent_search.settings.history.hint": "\u70b9\u51fb AE2 \u7ec8\u7aef\u641c\u7d22\u6846\u65f6\uff0c\u5728\u641c\u7d22\u6846\u4e0b\u65b9\u663e\u793a\u6700\u8fd1\u641c\u7d22\u5185\u5bb9\u3002\u6e05\u7a7a\u53ea\u4f1a\u5220\u9664\u5f53\u524d\u73a9\u5bb6\u7684\u8bb0\u5f55\u3002",
+  "ae2_recent_search.settings.history.hint": "\u663e\u793a\u5728\u641c\u7d22\u6846\u4e0b\u65b9\u3002\u6e05\u7a7a\u53ea\u4f1a\u5220\u9664\u5f53\u524d\u73a9\u5bb6\u7684\u8bb0\u5f55\u3002",
+  "ae2_recent_search.settings.entry_actions": "\u8bcd\u6761\u64cd\u4f5c",
   "ae2_recent_search.settings.click_behavior": "\u70b9\u51fb\u884c\u4e3a",
-  "ae2_recent_search.settings.click_behavior.hint": "\u5f00\u542f\u65f6\uff0c\u70b9\u51fb\u5386\u53f2\u8bb0\u5f55\u4f1a\u7acb\u5373\u5e94\u7528\u641c\u7d22\uff1b\u5173\u95ed\u65f6\uff0c\u53ea\u628a\u6587\u672c\u586b\u5165\u641c\u7d22\u6846\u3002",
+  "ae2_recent_search.settings.click_behavior.hint": "\u70b9\u51fb\u5386\u53f2\u8bb0\u5f55\u65f6\uff0c\u53ef\u4ee5\u7acb\u5373\u641c\u7d22\uff0c\u4e5f\u53ef\u4ee5\u4ec5\u586b\u5165\u641c\u7d22\u6846\u3002",
   "ae2_recent_search.settings.external_search": "\u5916\u90e8\u641c\u7d22",
-  "ae2_recent_search.settings.external_search.hint": "\u5f00\u542f\u65f6\uff0c\u82e5 AE2 \u5df2\u5f00\u542f\u5916\u90e8\u641c\u7d22\u540c\u6b65\uff0c\u6700\u8fd1\u641c\u7d22\u4e5f\u4f1a\u540c\u6b65\u5230 JEI/REI\u3002"
+  "ae2_recent_search.settings.external_search.hint": "\u5f00\u542f\u65f6\uff0c\u70b9\u51fb\u7684\u8bcd\u6761\u4f1a\u5728 AE2 \u5916\u90e8\u641c\u7d22\u5f00\u542f\u65f6\u540c\u6b65\u5230 JEI/REI\u3002"
 }

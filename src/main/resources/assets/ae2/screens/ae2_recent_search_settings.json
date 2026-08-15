@@ -1,7 +1,7 @@
 {
   "$schema": "schema.json",
   "includes": ["common/common.json"],
-  "generatedBackground": { "width": 200, "height": 252 },
+  "generatedBackground": { "width": 200, "height": 320 },
   "text": {
     "dialog_title": {
       "text": { "translate": "ae2_recent_search.settings.title" },
@@ -12,7 +12,9 @@
     "back": { "left": 176, "top": -5, "width": 20, "height": 20 },
     "enabled": { "left": 10, "top": 43, "width": 180, "height": 20 },
     "clear": { "left": 10, "top": 68, "width": 180, "height": 20 },
-    "applyOnClick": { "left": 10, "top": 131, "width": 180, "height": 20 },
-    "syncExternalSearch": { "left": 10, "top": 197, "width": 180, "height": 20 }
+    "deleteButtons": { "left": 10, "top": 137, "width": 180, "height": 20 },
+    "favorites": { "left": 10, "top": 162, "width": 180, "height": 20 },
+    "applyOnClick": { "left": 10, "top": 205, "width": 180, "height": 20 },
+    "syncExternalSearch": { "left": 10, "top": 263, "width": 180, "height": 20 }
   }
 }

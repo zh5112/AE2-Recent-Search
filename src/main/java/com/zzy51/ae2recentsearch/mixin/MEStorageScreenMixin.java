@@ -18,6 +18,7 @@ import appeng.integration.abstraction.ItemListMod;
 import appeng.menu.me.common.MEStorageMenu;
 
 import com.zzy51.ae2recentsearch.client.RecentSearchOverlay;
+import com.zzy51.ae2recentsearch.client.RecentSearchOverlay.ClickTargetType;
 import com.zzy51.ae2recentsearch.client.RecentSearchScreenAccess;
 import com.zzy51.ae2recentsearch.client.SearchHistoryStore;
 
@@ -72,21 +73,34 @@ public abstract class MEStorageScreenMixin<C extends MEStorageMenu> implements R
             double y,
             int button,
             CallbackInfoReturnable<Boolean> cir) {
-        if (RecentSearchOverlay.isMouseOver(searchField, x, y)) {
-            var value = RecentSearchOverlay.getClickedValue(searchField, x, y);
-            if (button == 0 && value != null) {
-                SearchHistoryStore.record(value);
-                if (SearchHistoryStore.isApplyOnClick()) {
-                    searchField.setValue(value);
-                    ae2RecentSearch$syncExternalSearch(value);
-                    searchField.setFocused(false);
-                    ae2RecentSearch$setScreenFocus(null);
-                } else {
-                    ae2RecentSearch$setValueWithoutSearch(value);
+        var target = RecentSearchOverlay.getClickedTarget(searchField, x, y);
+        if (target != null) {
+            if (button == 0) {
+                if (target.type() == ClickTargetType.DELETE) {
+                    SearchHistoryStore.remove(target.value());
+                } else if (target.type() == ClickTargetType.SEARCH_FAVORITE) {
+                    SearchHistoryStore.toggleFavoriteForSearch(target.value());
                     searchField.setFocused(true);
                     ae2RecentSearch$setScreenFocus(searchField);
+                } else {
+                    SearchHistoryStore.record(target.value());
+                    if (SearchHistoryStore.isApplyOnClick()) {
+                        searchField.setValue(target.value());
+                        ae2RecentSearch$syncExternalSearch(target.value());
+                        searchField.setFocused(false);
+                        ae2RecentSearch$setScreenFocus(null);
+                    } else {
+                        ae2RecentSearch$setValueWithoutSearch(target.value());
+                        searchField.setFocused(true);
+                        ae2RecentSearch$setScreenFocus(searchField);
+                    }
                 }
             }
+            cir.setReturnValue(true);
+            return;
+        }
+
+        if (RecentSearchOverlay.isMouseOver(searchField, x, y)) {
             cir.setReturnValue(true);
             return;
         }

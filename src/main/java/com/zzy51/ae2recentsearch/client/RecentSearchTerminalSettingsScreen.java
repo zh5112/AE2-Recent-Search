@@ -18,6 +18,8 @@ import net.minecraft.network.chat.Component;
 public final class RecentSearchTerminalSettingsScreen<C extends MEStorageMenu>
         extends AESubScreen<C, TerminalSettingsScreen<C>> {
     private AE2Button enabledButton;
+    private AE2Button deleteButtonsButton;
+    private AE2Button favoritesButton;
     private AE2Button applyOnClickButton;
     private AE2Button syncExternalSearchButton;
 
@@ -27,6 +29,8 @@ public final class RecentSearchTerminalSettingsScreen<C extends MEStorageMenu>
         widgets.add("back", new TabButton(Icon.BACK,
                 Component.translatable("gui.back"), ignored -> returnToParent()));
         enabledButton = widgets.addButton("enabled", enabledText(), this::toggleEnabled);
+        deleteButtonsButton = widgets.addButton("deleteButtons", deleteButtonsText(), this::toggleDeleteButtons);
+        favoritesButton = widgets.addButton("favorites", favoritesText(), this::toggleFavorites);
         applyOnClickButton = widgets.addButton("applyOnClick", applyOnClickText(), this::toggleApplyOnClick);
         syncExternalSearchButton = widgets.addButton("syncExternalSearch", syncExternalSearchText(),
                 this::toggleSyncExternalSearch);
@@ -50,6 +54,16 @@ public final class RecentSearchTerminalSettingsScreen<C extends MEStorageMenu>
         enabledButton.setMessage(enabledText());
     }
 
+    private void toggleDeleteButtons() {
+        SearchHistoryStore.setDeleteButtonsEnabled(!SearchHistoryStore.isDeleteButtonsEnabled());
+        deleteButtonsButton.setMessage(deleteButtonsText());
+    }
+
+    private void toggleFavorites() {
+        SearchHistoryStore.setFavoritesEnabled(!SearchHistoryStore.isFavoritesEnabled());
+        favoritesButton.setMessage(favoritesText());
+    }
+
     private void toggleApplyOnClick() {
         SearchHistoryStore.setApplyOnClick(!SearchHistoryStore.isApplyOnClick());
         applyOnClickButton.setMessage(applyOnClickText());
@@ -64,6 +78,18 @@ public final class RecentSearchTerminalSettingsScreen<C extends MEStorageMenu>
         return Component.translatable(SearchHistoryStore.isEnabled()
                 ? "ae2_recent_search.button.enabled_on"
                 : "ae2_recent_search.button.enabled_off");
+    }
+
+    private Component deleteButtonsText() {
+        return Component.translatable(SearchHistoryStore.isDeleteButtonsEnabled()
+                ? "ae2_recent_search.button.delete_buttons_on"
+                : "ae2_recent_search.button.delete_buttons_off");
+    }
+
+    private Component favoritesText() {
+        return Component.translatable(SearchHistoryStore.isFavoritesEnabled()
+                ? "ae2_recent_search.button.favorites_on"
+                : "ae2_recent_search.button.favorites_off");
     }
 
     private Component applyOnClickText() {
@@ -85,17 +111,19 @@ public final class RecentSearchTerminalSettingsScreen<C extends MEStorageMenu>
                 10, 30, 0x404040, false);
         graphics.drawWordWrap(font,
                 Component.translatable("ae2_recent_search.settings.history.hint"),
-                10, 98, 180, 0x666666);
+                10, 94, 180, 0x666666);
+        graphics.drawString(font, Component.translatable("ae2_recent_search.settings.entry_actions"),
+                10, 124, 0x404040, false);
         graphics.drawString(font, Component.translatable("ae2_recent_search.settings.click_behavior"),
-                10, 118, 0x404040, false);
+                10, 192, 0x404040, false);
         graphics.drawWordWrap(font,
                 Component.translatable("ae2_recent_search.settings.click_behavior.hint"),
-                10, 154, 180, 0x666666);
+                10, 231, 180, 0x666666);
         graphics.drawString(font, Component.translatable("ae2_recent_search.settings.external_search"),
-                10, 184, 0x404040, false);
+                10, 254, 0x404040, false);
         graphics.drawWordWrap(font,
                 Component.translatable("ae2_recent_search.settings.external_search.hint"),
-                10, 220, 180, 0x666666);
+                10, 290, 180, 0x666666);
     }
 
     @Override

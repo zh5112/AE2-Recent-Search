@@ -6,7 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,11 +34,14 @@ public final class SearchHistoryStore {
     private SearchHistoryStore() {
     }
 
-    public static List<String> getVisibleEntries() {
+    public static List<SearchEntry> getVisibleEntries() {
         ensureLoaded();
         var history = currentHistory().entries();
-        var visibleCount = Math.min(ClientConfig.MAX_VISIBLE_ENTRIES.getAsInt(), history.size());
-        return List.copyOf(history.subList(0, visibleCount));
+        var visibleEntries = currentHistory().favoritesEnabled()
+                ? favoriteEntriesFirst(history)
+                : history;
+        var visibleCount = Math.min(ClientConfig.MAX_VISIBLE_ENTRIES.getAsInt(), visibleEntries.size());
+        return List.copyOf(visibleEntries.subList(0, visibleCount));
     }
 
     public static boolean isEnabled() {
@@ -74,6 +77,28 @@ public final class SearchHistoryStore {
         save();
     }
 
+    public static boolean isDeleteButtonsEnabled() {
+        ensureLoaded();
+        return currentHistory().deleteButtonsEnabled();
+    }
+
+    public static void setDeleteButtonsEnabled(boolean deleteButtonsEnabled) {
+        ensureLoaded();
+        currentHistory().setDeleteButtonsEnabled(deleteButtonsEnabled);
+        save();
+    }
+
+    public static boolean isFavoritesEnabled() {
+        ensureLoaded();
+        return currentHistory().favoritesEnabled();
+    }
+
+    public static void setFavoritesEnabled(boolean favoritesEnabled) {
+        ensureLoaded();
+        currentHistory().setFavoritesEnabled(favoritesEnabled);
+        save();
+    }
+
     public static void record(String value) {
         if (!isEnabled() || value == null || value.isBlank()) {
             return;
@@ -81,9 +106,122 @@ public final class SearchHistoryStore {
 
         ensureLoaded();
         var history = currentHistory().entries();
-        history.remove(value);
-        history.add(0, value);
+        var favorite = false;
+        for (int i = 0; i < history.size(); i++) {
+            var entry = history.get(i);
+            if (entry.value().equals(value)) {
+                favorite = entry.favorite();
+                history.remove(i);
+                break;
+            }
+        }
+
+        history.add(0, new SearchEntry(value, favorite));
         save();
+    }
+
+    public static void remove(String value) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+
+        ensureLoaded();
+        if (removeEntry(value)) {
+            save();
+        }
+    }
+
+    public static void setFavorite(String value, boolean favorite) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+
+        ensureLoaded();
+        var history = currentHistory().entries();
+        for (int i = 0; i < history.size(); i++) {
+            var entry = history.get(i);
+            if (!entry.value().equals(value)) {
+                continue;
+            }
+
+            if (entry.favorite() == favorite) {
+                return;
+            }
+
+            history.set(i, new SearchEntry(value, favorite));
+            if (favorite) {
+                var updated = history.remove(i);
+                history.add(0, updated);
+            }
+            save();
+            return;
+        }
+    }
+
+    public static void toggleFavorite(String value) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+
+        ensureLoaded();
+        var history = currentHistory().entries();
+        for (int i = 0; i < history.size(); i++) {
+            var entry = history.get(i);
+            if (!entry.value().equals(value)) {
+                continue;
+            }
+
+            if (entry.favorite()) {
+                history.set(i, new SearchEntry(value, false));
+            } else {
+                history.remove(i);
+                history.add(0, new SearchEntry(value, true));
+            }
+            save();
+            return;
+        }
+    }
+
+    public static void toggleFavoriteForSearch(String value) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+
+        ensureLoaded();
+        var history = currentHistory().entries();
+        for (int i = 0; i < history.size(); i++) {
+            var entry = history.get(i);
+            if (!entry.value().equals(value)) {
+                continue;
+            }
+
+            if (entry.favorite()) {
+                history.set(i, new SearchEntry(value, false));
+            } else {
+                history.remove(i);
+                history.add(0, new SearchEntry(value, true));
+            }
+            save();
+            return;
+        }
+
+        history.add(0, new SearchEntry(value, true));
+        save();
+    }
+
+    public static boolean isFavorite(String value) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+
+        ensureLoaded();
+        for (var entry : currentHistory().entries()) {
+            if (entry.value().equals(value)) {
+                return entry.favorite();
+            }
+        }
+
+        return false;
     }
 
     public static void clear() {
@@ -94,6 +232,21 @@ public final class SearchHistoryStore {
 
     private static PlayerHistory currentHistory() {
         return HISTORY_BY_PLAYER.computeIfAbsent(currentPlayerKey(), key -> new PlayerHistory());
+    }
+
+    private static List<SearchEntry> favoriteEntriesFirst(List<SearchEntry> entries) {
+        var ordered = new ArrayList<SearchEntry>(entries.size());
+        for (var entry : entries) {
+            if (entry.favorite()) {
+                ordered.add(entry);
+            }
+        }
+        for (var entry : entries) {
+            if (!entry.favorite()) {
+                ordered.add(entry);
+            }
+        }
+        return ordered;
     }
 
     private static void ensureLoaded() {
@@ -143,13 +296,20 @@ public final class SearchHistoryStore {
                 }
 
                 var history = new PlayerHistory();
-                var values = new LinkedHashSet<String>();
+                var values = new LinkedHashMap<String, SearchEntry>();
                 for (JsonElement element : entry.getValue().getAsJsonArray()) {
-                    if (element.isJsonPrimitive() && element.getAsJsonPrimitive().isString()) {
-                        values.add(element.getAsString());
+                    var parsed = parseEntry(element);
+                    if (parsed == null) {
+                        continue;
+                    }
+
+                    var existing = values.get(parsed.value());
+                    if (existing == null || (!existing.favorite() && parsed.favorite())) {
+                        values.put(parsed.value(), parsed);
                     }
                 }
-                history.entries().addAll(values);
+
+                history.entries().addAll(values.values());
                 HISTORY_BY_PLAYER.put(entry.getKey(), history);
             }
 
@@ -171,11 +331,38 @@ public final class SearchHistoryStore {
                     if (state.has("syncExternalSearch")) {
                         history.setSyncExternalSearch(state.get("syncExternalSearch").getAsBoolean());
                     }
+                    if (state.has("deleteButtonsEnabled")) {
+                        history.setDeleteButtonsEnabled(state.get("deleteButtonsEnabled").getAsBoolean());
+                    }
+                    if (state.has("favoritesEnabled")) {
+                        history.setFavoritesEnabled(state.get("favoritesEnabled").getAsBoolean());
+                    }
                 }
             }
         } catch (Exception ignored) {
             // A malformed local history should never prevent the game from starting.
         }
+    }
+
+    private static SearchEntry parseEntry(JsonElement element) {
+        if (element.isJsonPrimitive() && element.getAsJsonPrimitive().isString()) {
+            return new SearchEntry(element.getAsString(), false);
+        }
+
+        if (!element.isJsonObject()) {
+            return null;
+        }
+
+        var object = element.getAsJsonObject();
+        if (!object.has("value")
+                || !object.get("value").isJsonPrimitive()
+                || !object.get("value").getAsJsonPrimitive().isString()) {
+            return null;
+        }
+
+        var value = object.get("value").getAsString();
+        var favorite = object.has("favorite") && object.get("favorite").getAsBoolean();
+        return new SearchEntry(value, favorite);
     }
 
     private static void save() {
@@ -187,13 +374,20 @@ public final class SearchHistoryStore {
             var settings = new JsonObject();
             for (var entry : HISTORY_BY_PLAYER.entrySet()) {
                 var values = new JsonArray();
-                entry.getValue().entries().forEach(values::add);
+                for (var historyEntry : entry.getValue().entries()) {
+                    var value = new JsonObject();
+                    value.addProperty("value", historyEntry.value());
+                    value.addProperty("favorite", historyEntry.favorite());
+                    values.add(value);
+                }
                 players.add(entry.getKey(), values);
 
                 var state = new JsonObject();
                 state.addProperty("enabled", entry.getValue().enabled());
                 state.addProperty("applyOnClick", entry.getValue().applyOnClick());
                 state.addProperty("syncExternalSearch", entry.getValue().syncExternalSearch());
+                state.addProperty("deleteButtonsEnabled", entry.getValue().deleteButtonsEnabled());
+                state.addProperty("favoritesEnabled", entry.getValue().favoritesEnabled());
                 settings.add(entry.getKey(), state);
             }
 
@@ -206,13 +400,26 @@ public final class SearchHistoryStore {
         }
     }
 
+    private static boolean removeEntry(String value) {
+        var history = currentHistory().entries();
+        for (int i = 0; i < history.size(); i++) {
+            if (history.get(i).value().equals(value)) {
+                history.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static final class PlayerHistory {
-        private final List<String> entries = new ArrayList<>();
+        private final List<SearchEntry> entries = new ArrayList<>();
         private boolean enabled = true;
         private boolean applyOnClick = true;
         private boolean syncExternalSearch = true;
+        private boolean deleteButtonsEnabled = true;
+        private boolean favoritesEnabled = true;
 
-        List<String> entries() {
+        List<SearchEntry> entries() {
             return entries;
         }
 
@@ -239,5 +446,25 @@ public final class SearchHistoryStore {
         void setSyncExternalSearch(boolean syncExternalSearch) {
             this.syncExternalSearch = syncExternalSearch;
         }
+
+        boolean deleteButtonsEnabled() {
+            return deleteButtonsEnabled;
+        }
+
+        void setDeleteButtonsEnabled(boolean deleteButtonsEnabled) {
+            this.deleteButtonsEnabled = deleteButtonsEnabled;
+        }
+
+        boolean favoritesEnabled() {
+            return favoritesEnabled;
+        }
+
+        void setFavoritesEnabled(boolean favoritesEnabled) {
+            this.favoritesEnabled = favoritesEnabled;
+        }
+
+    }
+
+    public record SearchEntry(String value, boolean favorite) {
     }
 }

@@ -5,6 +5,10 @@
   "ae2_recent_search.configuration.maxVisibleEntries": "Maximum visible recent searches",
   "ae2_recent_search.button.enabled_on": "Recent: On",
   "ae2_recent_search.button.enabled_off": "Recent: Off",
+  "ae2_recent_search.button.delete_buttons_on": "Delete: On",
+  "ae2_recent_search.button.delete_buttons_off": "Delete: Off",
+  "ae2_recent_search.button.favorites_on": "Favorite: On",
+  "ae2_recent_search.button.favorites_off": "Favorite: Off",
   "ae2_recent_search.button.apply_on": "Click: Search",
   "ae2_recent_search.button.apply_off": "Click: Fill",
   "ae2_recent_search.button.sync_external_on": "JEI Sync: On",
@@ -12,9 +16,10 @@
   "ae2_recent_search.button.clear": "Clear",
   "ae2_recent_search.settings.title": "Recent Search Settings",
   "ae2_recent_search.settings.history": "Search History",
-  "ae2_recent_search.settings.history.hint": "When the AE2 terminal search field is focused, recent searches are shown below it. Clearing only removes the current player's entries.",
+  "ae2_recent_search.settings.history.hint": "Shown below the search field. Clearing only removes the current player's entries.",
+  "ae2_recent_search.settings.entry_actions": "Entry Actions",
   "ae2_recent_search.settings.click_behavior": "Click Behavior",
-  "ae2_recent_search.settings.click_behavior.hint": "When enabled, clicking a history entry immediately applies the search. When disabled, it only fills the search field.",
+  "ae2_recent_search.settings.click_behavior.hint": "Clicking a history entry either searches immediately or only fills the search field.",
   "ae2_recent_search.settings.external_search": "External Search",
-  "ae2_recent_search.settings.external_search.hint": "When enabled, recent searches also update JEI/REI if AE2 external search sync is enabled."
+  "ae2_recent_search.settings.external_search.hint": "When enabled, clicked entries also update JEI/REI if AE2 external search sync is enabled."
 }

@@ -17,7 +17,8 @@ import net.minecraft.world.inventory.Slot;
 
 @Mixin(AEBaseScreen.class)
 public abstract class AEBaseScreenMixin {
-    @Inject(method = "render", at = @At("TAIL"))
+    @Inject(method = "render", at = @At(value = "INVOKE",
+            target = "Lappeng/client/gui/AEBaseScreen;renderTooltips(Lnet/minecraft/client/gui/GuiGraphics;II)V"))
     private void ae2RecentSearch$renderOverlay(
             GuiGraphics guiGraphics,
             int mouseX,
