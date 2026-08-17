@@ -9,6 +9,8 @@
   "ae2_recent_search.button.delete_buttons_off": "\u5220\u9664\uff1a\u5173",
   "ae2_recent_search.button.favorites_on": "\u6536\u85cf\uff1a\u5f00",
   "ae2_recent_search.button.favorites_off": "\u6536\u85cf\uff1a\u5173",
+  "ae2_recent_search.button.keyboard_navigation_on": "\u952e\u76d8\u9009\u62e9\uff1a\u5f00",
+  "ae2_recent_search.button.keyboard_navigation_off": "\u952e\u76d8\u9009\u62e9\uff1a\u5173",
   "ae2_recent_search.button.apply_on": "\u70b9\u51fb\uff1a\u7acb\u5373\u641c\u7d22",
   "ae2_recent_search.button.apply_off": "\u70b9\u51fb\uff1a\u4ec5\u586b\u5165",
   "ae2_recent_search.button.sync_external_on": "JEI \u540c\u6b65\uff1a\u5f00",

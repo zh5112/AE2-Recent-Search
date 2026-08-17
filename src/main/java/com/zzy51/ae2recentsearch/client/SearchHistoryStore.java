@@ -99,6 +99,17 @@ public final class SearchHistoryStore {
         save();
     }
 
+    public static boolean isKeyboardNavigationEnabled() {
+        ensureLoaded();
+        return currentHistory().keyboardNavigationEnabled();
+    }
+
+    public static void setKeyboardNavigationEnabled(boolean keyboardNavigationEnabled) {
+        ensureLoaded();
+        currentHistory().setKeyboardNavigationEnabled(keyboardNavigationEnabled);
+        save();
+    }
+
     public static void record(String value) {
         if (!isEnabled() || value == null || value.isBlank()) {
             return;
@@ -337,6 +348,9 @@ public final class SearchHistoryStore {
                     if (state.has("favoritesEnabled")) {
                         history.setFavoritesEnabled(state.get("favoritesEnabled").getAsBoolean());
                     }
+                    if (state.has("keyboardNavigationEnabled")) {
+                        history.setKeyboardNavigationEnabled(state.get("keyboardNavigationEnabled").getAsBoolean());
+                    }
                 }
             }
         } catch (Exception ignored) {
@@ -388,6 +402,7 @@ public final class SearchHistoryStore {
                 state.addProperty("syncExternalSearch", entry.getValue().syncExternalSearch());
                 state.addProperty("deleteButtonsEnabled", entry.getValue().deleteButtonsEnabled());
                 state.addProperty("favoritesEnabled", entry.getValue().favoritesEnabled());
+                state.addProperty("keyboardNavigationEnabled", entry.getValue().keyboardNavigationEnabled());
                 settings.add(entry.getKey(), state);
             }
 
@@ -418,6 +433,7 @@ public final class SearchHistoryStore {
         private boolean syncExternalSearch = true;
         private boolean deleteButtonsEnabled = true;
         private boolean favoritesEnabled = true;
+        private boolean keyboardNavigationEnabled = true;
 
         List<SearchEntry> entries() {
             return entries;
@@ -461,6 +477,14 @@ public final class SearchHistoryStore {
 
         void setFavoritesEnabled(boolean favoritesEnabled) {
             this.favoritesEnabled = favoritesEnabled;
+        }
+
+        boolean keyboardNavigationEnabled() {
+            return keyboardNavigationEnabled;
+        }
+
+        void setKeyboardNavigationEnabled(boolean keyboardNavigationEnabled) {
+            this.keyboardNavigationEnabled = keyboardNavigationEnabled;
         }
 
     }

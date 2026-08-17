@@ -9,6 +9,8 @@
   "ae2_recent_search.button.delete_buttons_off": "Delete: Off",
   "ae2_recent_search.button.favorites_on": "Favorite: On",
   "ae2_recent_search.button.favorites_off": "Favorite: Off",
+  "ae2_recent_search.button.keyboard_navigation_on": "Keyboard: On",
+  "ae2_recent_search.button.keyboard_navigation_off": "Keyboard: Off",
   "ae2_recent_search.button.apply_on": "Click: Search",
   "ae2_recent_search.button.apply_off": "Click: Fill",
   "ae2_recent_search.button.sync_external_on": "JEI Sync: On",

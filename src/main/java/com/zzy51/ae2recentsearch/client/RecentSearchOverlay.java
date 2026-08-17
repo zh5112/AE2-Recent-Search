@@ -27,6 +27,8 @@ public final class RecentSearchOverlay {
     private static final int HIGHLIGHT_BORDER_COLOR = 0xFFFFFFFF;
     private static final int SHADOW_BORDER_COLOR = 0xFF6F7488;
     private static final int HOVER_COLOR = 0xFFC1C8DE;
+    private static final int KEYBOARD_SELECTED_COLOR = 0xFFAEB8D0;
+    private static final int KEYBOARD_SELECTED_MARKER_COLOR = 0xFF5E6F99;
     private static final int SEPARATOR_COLOR = 0xFFB6BCCF;
     private static final int GROUP_SEPARATOR_COLOR = 0xFF9298AC;
 
@@ -62,6 +64,7 @@ public final class RecentSearchOverlay {
         var y = screenY(searchField);
         var width = width(searchField);
         var height = overlayHeight(groupedEntries);
+        var selectedValue = RecentSearchKeyboardNavigation.selectedValue(searchField);
 
         graphics.fill(x, y, x + width, y + height, BACKGROUND_COLOR);
         graphics.fill(x + 1, y + 1, x + width - 1, y + height - 1, INNER_BACKGROUND_COLOR);
@@ -71,12 +74,12 @@ public final class RecentSearchOverlay {
         graphics.vLine(x + width - 1, y, y + height - 1, SHADOW_BORDER_COLOR);
 
         var rowY = y + PADDING;
-        rowY = renderEntries(graphics, font, x, width, rowY, groupedEntries.favorites(), mouseX, mouseY);
+        rowY = renderEntries(graphics, font, x, width, rowY, groupedEntries.favorites(), selectedValue, mouseX, mouseY);
         if (groupedEntries.hasSeparator()) {
             graphics.hLine(x + 3, x + width - 4, rowY + 1, GROUP_SEPARATOR_COLOR);
             rowY += 4;
         }
-        renderEntries(graphics, font, x, width, rowY, groupedEntries.recents(), mouseX, mouseY);
+        renderEntries(graphics, font, x, width, rowY, groupedEntries.recents(), selectedValue, mouseX, mouseY);
     }
 
     public static boolean isMouseOver(AETextField searchField, double mouseX, double mouseY) {
@@ -139,11 +142,12 @@ public final class RecentSearchOverlay {
             int width,
             int rowY,
             List<SearchHistoryStore.SearchEntry> entries,
+            String selectedValue,
             int mouseX,
             int mouseY) {
         var showDelete = SearchHistoryStore.isDeleteButtonsEnabled();
         for (var entry : entries) {
-            drawEntryRow(graphics, font, x, width, rowY, entry, mouseX, mouseY, showDelete);
+            drawEntryRow(graphics, font, x, width, rowY, entry, selectedValue, mouseX, mouseY, showDelete);
             rowY += ROW_HEIGHT;
         }
         return rowY;
@@ -156,18 +160,25 @@ public final class RecentSearchOverlay {
             int width,
             int rowY,
             SearchHistoryStore.SearchEntry entry,
+            String selectedValue,
             int mouseX,
             int mouseY,
             boolean showDelete) {
         var layout = buttonLayout(x, width, showDelete);
         var hovered = isRowHovered(x, width, rowY, mouseX, mouseY);
+        var selected = entry.value().equals(selectedValue);
+        if (selected) {
+            graphics.fill(x + 1, rowY, x + width - 1, rowY + ROW_HEIGHT, KEYBOARD_SELECTED_COLOR);
+            graphics.fill(x + 1, rowY + 1, x + 3, rowY + ROW_HEIGHT - 1, KEYBOARD_SELECTED_MARKER_COLOR);
+        }
         if (hovered) {
             graphics.fill(x + 1, rowY, x + width - 1, rowY + ROW_HEIGHT, HOVER_COLOR);
         }
 
         var textWidth = Math.max(0, width - 2 * PADDING - layout.textReserveWidth());
         var value = font.plainSubstrByWidth(entry.value(), textWidth);
-        graphics.drawString(font, value, x + PADDING, rowY + 3, hovered ? TEXT_HOVER_COLOR : TEXT_COLOR, false);
+        graphics.drawString(font, value, x + PADDING, rowY + 3,
+                hovered || selected ? TEXT_HOVER_COLOR : TEXT_COLOR, false);
 
         if (showDelete) {
             var deleteHovered = isButtonHovered(layout.deleteX(), rowY, mouseX, mouseY);
