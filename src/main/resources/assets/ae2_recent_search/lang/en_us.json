@@ -27,5 +27,8 @@
   "ae2_recent_search.settings.click_behavior": "Click Behavior",
   "ae2_recent_search.settings.click_behavior.hint": "Entry clicks either search immediately or only fill the search field.",
   "ae2_recent_search.settings.external_search": "External Search",
-  "ae2_recent_search.settings.external_search.hint": "Only syncs to JEI/REI when AE2 external search is enabled."
+  "ae2_recent_search.settings.external_search.hint": "Only syncs to JEI/REI when AE2 external search is enabled.",
+  "key.categories.ae2_recent_search": "AE2 Recent Search",
+  "key.ae2_recent_search.select_previous": "Select Previous Recent Search",
+  "key.ae2_recent_search.select_next": "Select Next Recent Search"
 }

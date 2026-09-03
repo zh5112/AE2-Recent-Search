@@ -27,5 +27,8 @@
   "ae2_recent_search.settings.click_behavior": "\u70b9\u51fb\u884c\u4e3a",
   "ae2_recent_search.settings.click_behavior.hint": "\u70b9\u51fb\u8bcd\u6761\u65f6\u7acb\u5373\u641c\u7d22\u6216\u4ec5\u586b\u5165\u641c\u7d22\u6846\u3002",
   "ae2_recent_search.settings.external_search": "\u5916\u90e8\u641c\u7d22",
-  "ae2_recent_search.settings.external_search.hint": "\u4ec5\u5728 AE2 \u5916\u90e8\u641c\u7d22\u5f00\u542f\u65f6\u540c\u6b65\u5230 JEI/REI\u3002"
+  "ae2_recent_search.settings.external_search.hint": "\u4ec5\u5728 AE2 \u5916\u90e8\u641c\u7d22\u5f00\u542f\u65f6\u540c\u6b65\u5230 JEI/REI\u3002",
+  "key.categories.ae2_recent_search": "AE2 \u6700\u8fd1\u641c\u7d22",
+  "key.ae2_recent_search.select_previous": "\u9009\u62e9\u4e0a\u4e00\u6761\u6700\u8fd1\u641c\u7d22",
+  "key.ae2_recent_search.select_next": "\u9009\u62e9\u4e0b\u4e00\u6761\u6700\u8fd1\u641c\u7d22"
 }

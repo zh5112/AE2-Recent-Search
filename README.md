@@ -16,7 +16,7 @@ AE2 Recent Search 是一个适用于 Minecraft `1.21.1` NeoForge 的 [Applied En
 - 支持删除单条历史记录。
 - 支持鼠标滚轮滚动较长的历史记录列表。
 - 支持长按拖动收藏词条调整顺序。
-- 支持使用键盘上、下方向键选择候选词条，并按回车键确认。
+- 支持使用键盘选择候选词条，并按回车键确认；默认按键为上、下方向键，可在 Minecraft 控制设置中修改。
 - 支持在 AE2 终端设置界面中配置相关功能。
 - 支持选择点击历史词条后的行为：
   - 立即搜索
@@ -108,7 +108,7 @@ It adds recent search history, favorites, per-entry deletion, keyboard navigatio
 - Supports deleting individual history entries.
 - Supports mouse wheel scrolling when the history list is longer than the visible area.
 - Supports long-press dragging to reorder favorite entries.
-- Supports Up and Down arrow keys for candidate selection and Enter to confirm.
+- Supports keyboard candidate selection and Enter to confirm. The default keys are Up and Down, and can be changed in Minecraft's controls screen.
 - Provides an in-terminal settings screen for these features.
 - Lets history entries either search immediately or only fill the search box.
 - Can optionally synchronize searches with JEI, REI, or EMI.

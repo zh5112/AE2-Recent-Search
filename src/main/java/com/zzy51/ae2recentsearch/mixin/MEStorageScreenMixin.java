@@ -16,6 +16,7 @@ import appeng.client.gui.widgets.AETextField;
 import appeng.menu.me.common.MEStorageMenu;
 
 import com.zzy51.ae2recentsearch.client.RecentSearchActions;
+import com.zzy51.ae2recentsearch.client.RecentSearchKeyMappings;
 import com.zzy51.ae2recentsearch.client.RecentSearchOverlay;
 import com.zzy51.ae2recentsearch.client.RecentSearchKeyboardNavigation;
 import com.zzy51.ae2recentsearch.client.RecentSearchOverlay.ClickTargetType;
@@ -116,13 +117,13 @@ public abstract class MEStorageScreenMixin<C extends MEStorageMenu> implements R
             return;
         }
 
-        if (keyCode == GLFW.GLFW_KEY_DOWN
+        if (RecentSearchKeyMappings.matchesSelectNext(keyCode, scanCode)
                 && RecentSearchKeyboardNavigation.moveSelection(searchField, 1)) {
             cir.setReturnValue(true);
             return;
         }
 
-        if (keyCode == GLFW.GLFW_KEY_UP
+        if (RecentSearchKeyMappings.matchesSelectPrevious(keyCode, scanCode)
                 && RecentSearchKeyboardNavigation.moveSelection(searchField, -1)) {
             cir.setReturnValue(true);
             return;
