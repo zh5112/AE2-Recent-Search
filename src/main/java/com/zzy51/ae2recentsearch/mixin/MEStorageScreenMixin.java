@@ -13,19 +13,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import appeng.client.gui.AEBaseScreen;
 import appeng.client.gui.me.common.MEStorageScreen;
 import appeng.client.gui.widgets.AETextField;
-import appeng.core.AEConfig;
-import appeng.integration.abstraction.ItemListMod;
 import appeng.menu.me.common.MEStorageMenu;
 
+import com.zzy51.ae2recentsearch.client.RecentSearchActions;
 import com.zzy51.ae2recentsearch.client.RecentSearchOverlay;
 import com.zzy51.ae2recentsearch.client.RecentSearchKeyboardNavigation;
-import com.zzy51.ae2recentsearch.client.RecentSearchOverlay.ClickTarget;
 import com.zzy51.ae2recentsearch.client.RecentSearchOverlay.ClickTargetType;
 import com.zzy51.ae2recentsearch.client.RecentSearchScreenAccess;
 import com.zzy51.ae2recentsearch.client.SearchHistoryStore;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.events.GuiEventListener;
 
 @Mixin(MEStorageScreen.class)
 public abstract class MEStorageScreenMixin<C extends MEStorageMenu> implements RecentSearchScreenAccess {
@@ -39,60 +36,9 @@ public abstract class MEStorageScreenMixin<C extends MEStorageMenu> implements R
     }
 
     @Unique
-    private void ae2RecentSearch$recordCurrentSearch() {
-        if (searchField != null) {
-            SearchHistoryStore.record(searchField.getValue());
-        }
-    }
-
-    @Unique
-    private void ae2RecentSearch$setValueWithoutSearch(String value) {
-        var editBox = (EditBoxAccessor) searchField;
-        var responder = editBox.ae2RecentSearch$getResponder();
-        editBox.ae2RecentSearch$setResponder(null);
-        searchField.setValue(value);
-        editBox.ae2RecentSearch$setResponder(responder);
-    }
-
-    @Unique
     @SuppressWarnings("unchecked")
-    private void ae2RecentSearch$setScreenFocus(GuiEventListener listener) {
-        ((AEBaseScreen<C>) (Object) this).setFocused(listener);
-    }
-
-    @Unique
-    private void ae2RecentSearch$syncExternalSearch(String value) {
-        if (SearchHistoryStore.isSyncExternalSearch()
-                && AEConfig.instance().isSyncWithExternalSearch()
-                && ItemListMod.isEnabled()) {
-            ItemListMod.setSearchText(value);
-        }
-    }
-
-    @Unique
-    private void ae2RecentSearch$handleTarget(ClickTarget target) {
-        if (target.type() == ClickTargetType.DELETE) {
-            SearchHistoryStore.remove(target.value());
-            RecentSearchKeyboardNavigation.clear(searchField);
-        } else if (target.type() == ClickTargetType.SEARCH_FAVORITE) {
-            SearchHistoryStore.toggleFavoriteForSearch(target.value());
-            RecentSearchKeyboardNavigation.clear(searchField);
-            searchField.setFocused(true);
-            ae2RecentSearch$setScreenFocus(searchField);
-        } else {
-            SearchHistoryStore.record(target.value());
-            RecentSearchKeyboardNavigation.clear(searchField);
-            if (SearchHistoryStore.isApplyOnClick()) {
-                searchField.setValue(target.value());
-                ae2RecentSearch$syncExternalSearch(target.value());
-                searchField.setFocused(false);
-                ae2RecentSearch$setScreenFocus(null);
-            } else {
-                ae2RecentSearch$setValueWithoutSearch(target.value());
-                searchField.setFocused(true);
-                ae2RecentSearch$setScreenFocus(searchField);
-            }
-        }
+    private AEBaseScreen<C> ae2RecentSearch$screen() {
+        return (AEBaseScreen<C>) (Object) this;
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
@@ -104,7 +50,13 @@ public abstract class MEStorageScreenMixin<C extends MEStorageMenu> implements R
         var target = RecentSearchOverlay.getClickedTarget(searchField, x, y);
         if (target != null) {
             if (button == 0) {
-                ae2RecentSearch$handleTarget(target);
+                if (target.type() == ClickTargetType.ENTRY && SearchHistoryStore.isFavorite(target.value())) {
+                    if (!RecentSearchOverlay.beginDrag(searchField, x, y, button)) {
+                        RecentSearchActions.handleTarget(ae2RecentSearch$screen(), searchField, target);
+                    }
+                } else {
+                    RecentSearchActions.handleTarget(ae2RecentSearch$screen(), searchField, target);
+                }
             }
             cir.setReturnValue(true);
             return;
@@ -126,7 +78,20 @@ public abstract class MEStorageScreenMixin<C extends MEStorageMenu> implements R
                 && !searchField.isMouseOver(x, y)
                 && !RecentSearchOverlay.isMouseOver(searchField, x, y)) {
             RecentSearchKeyboardNavigation.clear(searchField);
-            ae2RecentSearch$recordCurrentSearch();
+            RecentSearchActions.recordCurrentSearch(searchField);
+            RecentSearchActions.clearFocus(ae2RecentSearch$screen(), searchField);
+        }
+    }
+
+    @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
+    private void ae2RecentSearch$handleRecentSearchScroll(
+            double mouseX,
+            double mouseY,
+            double scrollX,
+            double scrollY,
+            CallbackInfoReturnable<Boolean> cir) {
+        if (RecentSearchOverlay.scroll(searchField, mouseX, mouseY, scrollY)) {
+            cir.setReturnValue(true);
         }
     }
 
@@ -166,12 +131,12 @@ public abstract class MEStorageScreenMixin<C extends MEStorageMenu> implements R
         if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
             var target = RecentSearchKeyboardNavigation.selectedTarget(searchField);
             if (target != null) {
-                ae2RecentSearch$handleTarget(target);
+                RecentSearchActions.handleTarget(ae2RecentSearch$screen(), searchField, target);
                 cir.setReturnValue(true);
                 return;
             }
 
-            ae2RecentSearch$recordCurrentSearch();
+            RecentSearchActions.recordCurrentSearch(searchField);
             return;
         }
 
@@ -180,7 +145,8 @@ public abstract class MEStorageScreenMixin<C extends MEStorageMenu> implements R
 
     @Inject(method = "removed", at = @At("HEAD"))
     private void ae2RecentSearch$recordOnRemoved(CallbackInfo ci) {
+        RecentSearchOverlay.clearInteraction(searchField);
         RecentSearchKeyboardNavigation.clear(searchField);
-        ae2RecentSearch$recordCurrentSearch();
+        RecentSearchActions.recordCurrentSearch(searchField);
     }
 }

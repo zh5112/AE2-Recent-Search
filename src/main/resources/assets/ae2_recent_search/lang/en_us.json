@@ -11,6 +11,10 @@
   "ae2_recent_search.button.favorites_off": "Favorite: Off",
   "ae2_recent_search.button.keyboard_navigation_on": "Keyboard: On",
   "ae2_recent_search.button.keyboard_navigation_off": "Keyboard: Off",
+  "ae2_recent_search.button.mouse_scroll_on": "Scroll: On",
+  "ae2_recent_search.button.mouse_scroll_off": "Scroll: Off",
+  "ae2_recent_search.button.favorite_drag_on": "Drag Fav: On",
+  "ae2_recent_search.button.favorite_drag_off": "Drag Fav: Off",
   "ae2_recent_search.button.apply_on": "Click: Search",
   "ae2_recent_search.button.apply_off": "Click: Fill",
   "ae2_recent_search.button.sync_external_on": "JEI Sync: On",
@@ -18,10 +22,10 @@
   "ae2_recent_search.button.clear": "Clear",
   "ae2_recent_search.settings.title": "Recent Search Settings",
   "ae2_recent_search.settings.history": "Search History",
-  "ae2_recent_search.settings.history.hint": "Shown below the search field. Clearing only removes the current player's entries.",
+  "ae2_recent_search.settings.history.hint": "Shown below the search field. Clear only affects the current player.",
   "ae2_recent_search.settings.entry_actions": "Entry Actions",
   "ae2_recent_search.settings.click_behavior": "Click Behavior",
-  "ae2_recent_search.settings.click_behavior.hint": "Clicking a history entry either searches immediately or only fills the search field.",
+  "ae2_recent_search.settings.click_behavior.hint": "Entry clicks either search immediately or only fill the search field.",
   "ae2_recent_search.settings.external_search": "External Search",
-  "ae2_recent_search.settings.external_search.hint": "When enabled, clicked entries also update JEI/REI if AE2 external search sync is enabled."
+  "ae2_recent_search.settings.external_search.hint": "Only syncs to JEI/REI when AE2 external search is enabled."
 }

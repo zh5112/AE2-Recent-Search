@@ -2,6 +2,8 @@ package com.zzy51.ae2recentsearch.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import appeng.client.gui.widgets.AETextField;
 
@@ -29,8 +31,13 @@ public final class RecentSearchOverlay {
     private static final int HOVER_COLOR = 0xFFC1C8DE;
     private static final int KEYBOARD_SELECTED_COLOR = 0xFFAEB8D0;
     private static final int KEYBOARD_SELECTED_MARKER_COLOR = 0xFF5E6F99;
+    private static final int DRAG_READY_COLOR = 0xFFD3C48A;
+    private static final int DRAG_ACTIVE_COLOR = 0xFF98AECF;
+    private static final int DRAG_MARKER_COLOR = 0xFF7B6A2F;
     private static final int SEPARATOR_COLOR = 0xFFB6BCCF;
     private static final int GROUP_SEPARATOR_COLOR = 0xFF9298AC;
+    private static final int DRAG_START_DISTANCE_SQUARED = 9;
+    private static final long DRAG_START_DELAY_MS = 250L;
 
     private static final int ACTION_BACKGROUND_COLOR = 0xFFDCE1EE;
     private static final int ACTION_HOVER_BACKGROUND_COLOR = 0xFFF0F3F9;
@@ -42,6 +49,9 @@ public final class RecentSearchOverlay {
     private static final int DELETE_ICON_COLOR = 0xFFC85E68;
     private static final int DELETE_HOVER_COLOR = 0xFFE9757D;
 
+    private static final Map<AETextField, Integer> SCROLL_OFFSETS = new WeakHashMap<>();
+    private static final Map<AETextField, InteractionState> INTERACTION_STATES = new WeakHashMap<>();
+
     private RecentSearchOverlay() {
     }
 
@@ -50,7 +60,7 @@ public final class RecentSearchOverlay {
                 && searchField != null
                 && searchField.visible
                 && searchField.isFocused()
-                && !SearchHistoryStore.getVisibleEntries().isEmpty();
+                && !SearchHistoryStore.getAllVisibleEntries().isEmpty();
     }
 
     public static void renderScreen(GuiGraphics graphics, Font font, AETextField searchField, int mouseX, int mouseY) {
@@ -59,12 +69,15 @@ public final class RecentSearchOverlay {
             return;
         }
 
-        var groupedEntries = groupEntries(SearchHistoryStore.getVisibleEntries());
+        var entries = SearchHistoryStore.getAllVisibleEntries();
+        var visibleEntries = visibleEntries(searchField, entries);
+        var groupedEntries = groupEntries(visibleEntries);
         var x = screenX(searchField);
         var y = screenY(searchField);
         var width = width(searchField);
-        var height = overlayHeight(groupedEntries);
+        var height = overlayHeight(visibleEntries, groupedEntries);
         var selectedValue = RecentSearchKeyboardNavigation.selectedValue(searchField);
+        var interactionState = interactionState(searchField);
 
         graphics.fill(x, y, x + width, y + height, BACKGROUND_COLOR);
         graphics.fill(x + 1, y + 1, x + width - 1, y + height - 1, INNER_BACKGROUND_COLOR);
@@ -74,12 +87,14 @@ public final class RecentSearchOverlay {
         graphics.vLine(x + width - 1, y, y + height - 1, SHADOW_BORDER_COLOR);
 
         var rowY = y + PADDING;
-        rowY = renderEntries(graphics, font, x, width, rowY, groupedEntries.favorites(), selectedValue, mouseX, mouseY);
+        rowY = renderEntries(graphics, font, x, width, rowY, groupedEntries.favorites(), selectedValue,
+                interactionState, mouseX, mouseY);
         if (groupedEntries.hasSeparator()) {
             graphics.hLine(x + 3, x + width - 4, rowY + 1, GROUP_SEPARATOR_COLOR);
             rowY += 4;
         }
-        renderEntries(graphics, font, x, width, rowY, groupedEntries.recents(), selectedValue, mouseX, mouseY);
+        renderEntries(graphics, font, x, width, rowY, groupedEntries.recents(), selectedValue,
+                interactionState, mouseX, mouseY);
     }
 
     public static boolean isMouseOver(AETextField searchField, double mouseX, double mouseY) {
@@ -87,11 +102,13 @@ public final class RecentSearchOverlay {
             return false;
         }
 
-        var groupedEntries = groupEntries(SearchHistoryStore.getVisibleEntries());
+        var entries = SearchHistoryStore.getAllVisibleEntries();
+        var visibleEntries = visibleEntries(searchField, entries);
+        var groupedEntries = groupEntries(visibleEntries);
         var x = screenX(searchField);
         var y = screenY(searchField);
         var width = width(searchField);
-        var height = overlayHeight(groupedEntries);
+        var height = overlayHeight(visibleEntries, groupedEntries);
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
     }
 
@@ -110,7 +127,9 @@ public final class RecentSearchOverlay {
             return null;
         }
 
-        var groupedEntries = groupEntries(SearchHistoryStore.getVisibleEntries());
+        var entries = SearchHistoryStore.getAllVisibleEntries();
+        var visibleEntries = visibleEntries(searchField, entries);
+        var groupedEntries = groupEntries(visibleEntries);
         var x = screenX(searchField);
         var y = screenY(searchField);
         var width = width(searchField);
@@ -135,6 +154,119 @@ public final class RecentSearchOverlay {
         return target != null && target.type() == ClickTargetType.ENTRY ? target.value() : null;
     }
 
+    public static boolean scroll(AETextField searchField, double mouseX, double mouseY, double deltaY) {
+        if (!SearchHistoryStore.isMouseScrollEnabled()
+                || !isMouseOver(searchField, mouseX, mouseY)
+                || deltaY == 0.0D) {
+            return false;
+        }
+
+        var entries = SearchHistoryStore.getAllVisibleEntries();
+        var maxScroll = maxScrollOffset(entries);
+        if (maxScroll <= 0) {
+            return true;
+        }
+
+        var current = scrollOffset(searchField, entries);
+        var next = clamp(current + (deltaY < 0.0D ? 1 : -1), 0, maxScroll);
+        SCROLL_OFFSETS.put(searchField, next);
+        RecentSearchKeyboardNavigation.clear(searchField);
+        clearInteraction(searchField);
+        return true;
+    }
+
+    public static void scrollToEntry(AETextField searchField, String value) {
+        if (searchField == null || value == null) {
+            return;
+        }
+
+        var entries = SearchHistoryStore.getAllVisibleEntries();
+        var entryIndex = -1;
+        for (int i = 0; i < entries.size(); i++) {
+            if (entries.get(i).value().equals(value)) {
+                entryIndex = i;
+                break;
+            }
+        }
+
+        if (entryIndex < 0) {
+            return;
+        }
+
+        var visibleCount = Math.min(SearchHistoryStore.getMaxVisibleEntries(), entries.size());
+        var current = scrollOffset(searchField, entries);
+        if (entryIndex < current) {
+            SCROLL_OFFSETS.put(searchField, entryIndex);
+        } else if (entryIndex >= current + visibleCount) {
+            SCROLL_OFFSETS.put(searchField, entryIndex - visibleCount + 1);
+        }
+    }
+
+    public static boolean beginDrag(AETextField searchField, double mouseX, double mouseY, int button) {
+        if (button != 0 || !SearchHistoryStore.isFavoritesEnabled() || !SearchHistoryStore.isFavoriteDragEnabled()) {
+            return false;
+        }
+
+        var target = getClickedTarget(searchField, mouseX, mouseY);
+        if (target == null || target.type() != ClickTargetType.ENTRY || !SearchHistoryStore.isFavorite(target.value())) {
+            return false;
+        }
+
+        INTERACTION_STATES.put(searchField,
+                new InteractionState(target.value(), mouseX, mouseY, System.currentTimeMillis()));
+        return true;
+    }
+
+    public static boolean drag(AETextField searchField, double mouseX, double mouseY, int button) {
+        var state = interactionState(searchField);
+        if (button != 0 || !SearchHistoryStore.isFavoriteDragEnabled() || !state.hasPressedFavorite()) {
+            return false;
+        }
+
+        if (state.shouldStartDragging(mouseX, mouseY)) {
+            state.dragging = true;
+        }
+
+        if (state.dragging) {
+            RecentSearchKeyboardNavigation.clear(searchField);
+            return true;
+        }
+
+        return false;
+    }
+
+    public static boolean releaseDrag(AETextField searchField, double mouseX, double mouseY, int button) {
+        var state = interactionState(searchField);
+        if (button != 0 || !SearchHistoryStore.isFavoriteDragEnabled() || !state.hasPressedFavorite()) {
+            return false;
+        }
+
+        if (!state.dragging) {
+            return false;
+        }
+
+        INTERACTION_STATES.remove(searchField);
+        var beforeValue = favoriteDropBeforeValue(searchField, mouseY, state.value);
+        SearchHistoryStore.moveFavorite(state.value, beforeValue);
+        return true;
+    }
+
+    public static ClickTarget releaseClick(AETextField searchField, int button) {
+        var state = interactionState(searchField);
+        if (button != 0 || !state.hasPressedFavorite() || state.dragging) {
+            return null;
+        }
+
+        INTERACTION_STATES.remove(searchField);
+        return new ClickTarget(ClickTargetType.ENTRY, state.value);
+    }
+
+    public static void clearInteraction(AETextField searchField) {
+        if (searchField != null) {
+            INTERACTION_STATES.remove(searchField);
+        }
+    }
+
     private static int renderEntries(
             GuiGraphics graphics,
             Font font,
@@ -143,11 +275,13 @@ public final class RecentSearchOverlay {
             int rowY,
             List<SearchHistoryStore.SearchEntry> entries,
             String selectedValue,
+            InteractionState interactionState,
             int mouseX,
             int mouseY) {
         var showDelete = SearchHistoryStore.isDeleteButtonsEnabled();
         for (var entry : entries) {
-            drawEntryRow(graphics, font, x, width, rowY, entry, selectedValue, mouseX, mouseY, showDelete);
+            drawEntryRow(graphics, font, x, width, rowY, entry, selectedValue, interactionState,
+                    mouseX, mouseY, showDelete);
             rowY += ROW_HEIGHT;
         }
         return rowY;
@@ -161,12 +295,22 @@ public final class RecentSearchOverlay {
             int rowY,
             SearchHistoryStore.SearchEntry entry,
             String selectedValue,
+            InteractionState interactionState,
             int mouseX,
             int mouseY,
             boolean showDelete) {
         var layout = buttonLayout(x, width, showDelete);
         var hovered = isRowHovered(x, width, rowY, mouseX, mouseY);
+        var dragging = interactionState.isDragging(entry.value());
+        var dragReady = interactionState.isDragReady(entry.value());
         var selected = entry.value().equals(selectedValue);
+        if (dragging) {
+            graphics.fill(x + 1, rowY, x + width - 1, rowY + ROW_HEIGHT, DRAG_ACTIVE_COLOR);
+            graphics.fill(x + 1, rowY + 1, x + 3, rowY + ROW_HEIGHT - 1, DRAG_MARKER_COLOR);
+        } else if (dragReady) {
+            graphics.fill(x + 1, rowY, x + width - 1, rowY + ROW_HEIGHT, DRAG_READY_COLOR);
+            graphics.fill(x + 1, rowY + 1, x + 3, rowY + ROW_HEIGHT - 1, DRAG_MARKER_COLOR);
+        }
         if (selected) {
             graphics.fill(x + 1, rowY, x + width - 1, rowY + ROW_HEIGHT, KEYBOARD_SELECTED_COLOR);
             graphics.fill(x + 1, rowY + 1, x + 3, rowY + ROW_HEIGHT - 1, KEYBOARD_SELECTED_MARKER_COLOR);
@@ -178,7 +322,7 @@ public final class RecentSearchOverlay {
         var textWidth = Math.max(0, width - 2 * PADDING - layout.textReserveWidth());
         var value = font.plainSubstrByWidth(entry.value(), textWidth);
         graphics.drawString(font, value, x + PADDING, rowY + 3,
-                hovered || selected ? TEXT_HOVER_COLOR : TEXT_COLOR, false);
+                hovered || selected || dragging || dragReady ? TEXT_HOVER_COLOR : TEXT_COLOR, false);
 
         if (showDelete) {
             var deleteHovered = isButtonHovered(layout.deleteX(), rowY, mouseX, mouseY);
@@ -297,10 +441,78 @@ public final class RecentSearchOverlay {
         return new GroupedEntries(List.copyOf(favorites), List.copyOf(recents));
     }
 
-    private static int overlayHeight(GroupedEntries groupedEntries) {
-        var rowCount = groupedEntries.favorites().size() + groupedEntries.recents().size();
+    private static List<SearchHistoryStore.SearchEntry> visibleEntries(
+            AETextField searchField,
+            List<SearchHistoryStore.SearchEntry> entries) {
+        var visibleCount = Math.min(SearchHistoryStore.getMaxVisibleEntries(), entries.size());
+        var offset = scrollOffset(searchField, entries);
+        return entries.subList(offset, offset + visibleCount);
+    }
+
+    private static int scrollOffset(AETextField searchField, List<SearchHistoryStore.SearchEntry> entries) {
+        var maxScroll = maxScrollOffset(entries);
+        var offset = SCROLL_OFFSETS.getOrDefault(searchField, 0);
+        offset = clamp(offset, 0, maxScroll);
+        if (offset == 0) {
+            SCROLL_OFFSETS.remove(searchField);
+        } else {
+            SCROLL_OFFSETS.put(searchField, offset);
+        }
+        return offset;
+    }
+
+    private static int maxScrollOffset(List<SearchHistoryStore.SearchEntry> entries) {
+        return Math.max(0, entries.size() - SearchHistoryStore.getMaxVisibleEntries());
+    }
+
+    private static int overlayHeight(List<SearchHistoryStore.SearchEntry> visibleEntries, GroupedEntries groupedEntries) {
+        var rowCount = visibleEntries.size();
         var separatorHeight = groupedEntries.hasSeparator() ? 4 : 0;
         return rowCount * ROW_HEIGHT + separatorHeight + 2 * PADDING;
+    }
+
+    private static String favoriteDropBeforeValue(AETextField searchField, double mouseY, String draggedValue) {
+        var allEntries = SearchHistoryStore.getAllVisibleEntries();
+        var entries = visibleEntries(searchField, allEntries);
+        var groupedEntries = groupEntries(entries);
+        var rowY = screenY(searchField) + PADDING;
+        String lastVisibleFavoriteValue = null;
+
+        for (var entry : groupedEntries.favorites()) {
+            if (!entry.value().equals(draggedValue) && mouseY < rowY + ROW_HEIGHT / 2.0D) {
+                return entry.value();
+            }
+            if (!entry.value().equals(draggedValue)) {
+                lastVisibleFavoriteValue = entry.value();
+            }
+            rowY += ROW_HEIGHT;
+        }
+
+        if (lastVisibleFavoriteValue != null) {
+            var foundLastVisible = false;
+            for (var entry : allEntries) {
+                if (!entry.favorite() || entry.value().equals(draggedValue)) {
+                    continue;
+                }
+                if (foundLastVisible) {
+                    return entry.value();
+                }
+                if (entry.value().equals(lastVisibleFavoriteValue)) {
+                    foundLastVisible = true;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static InteractionState interactionState(AETextField searchField) {
+        var state = INTERACTION_STATES.get(searchField);
+        return state == null ? InteractionState.EMPTY : state;
+    }
+
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     private static ButtonLayout buttonLayout(int x, int width, boolean showDelete) {
@@ -370,5 +582,45 @@ public final class RecentSearchOverlay {
     }
 
     private record ButtonLayout(int deleteX, int textReserveWidth) {
+    }
+
+    private static final class InteractionState {
+        private static final InteractionState EMPTY = new InteractionState(null, 0.0D, 0.0D, 0L);
+
+        private final String value;
+        private final double startX;
+        private final double startY;
+        private final long startTime;
+        private boolean dragging;
+
+        private InteractionState(String value, double startX, double startY, long startTime) {
+            this.value = value;
+            this.startX = startX;
+            this.startY = startY;
+            this.startTime = startTime;
+        }
+
+        private boolean hasPressedFavorite() {
+            return value != null;
+        }
+
+        private boolean shouldStartDragging(double mouseX, double mouseY) {
+            var dx = mouseX - startX;
+            var dy = mouseY - startY;
+            return dragging
+                    || System.currentTimeMillis() - startTime >= DRAG_START_DELAY_MS
+                    || dx * dx + dy * dy >= DRAG_START_DISTANCE_SQUARED;
+        }
+
+        private boolean isDragging(String entryValue) {
+            return dragging && value != null && value.equals(entryValue);
+        }
+
+        private boolean isDragReady(String entryValue) {
+            return !dragging
+                    && value != null
+                    && value.equals(entryValue)
+                    && System.currentTimeMillis() - startTime >= DRAG_START_DELAY_MS;
+        }
     }
 }

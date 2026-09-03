@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import appeng.client.gui.AEBaseScreen;
 
+import com.zzy51.ae2recentsearch.client.RecentSearchActions;
 import com.zzy51.ae2recentsearch.client.RecentSearchOverlay;
 import com.zzy51.ae2recentsearch.client.RecentSearchScreenAccess;
 
@@ -17,6 +18,56 @@ import net.minecraft.world.inventory.Slot;
 
 @Mixin(AEBaseScreen.class)
 public abstract class AEBaseScreenMixin {
+    @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
+    private void ae2RecentSearch$handleRecentSearchScroll(
+            double mouseX,
+            double mouseY,
+            double scrollX,
+            double scrollY,
+            CallbackInfoReturnable<Boolean> cir) {
+        if ((Object) this instanceof RecentSearchScreenAccess access
+                && RecentSearchOverlay.scroll(access.ae2RecentSearch$getSearchField(), mouseX, mouseY, scrollY)) {
+            cir.setReturnValue(true);
+        }
+    }
+
+    @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
+    private void ae2RecentSearch$handleRecentSearchDrag(
+            double mouseX,
+            double mouseY,
+            int button,
+            double dragX,
+            double dragY,
+            CallbackInfoReturnable<Boolean> cir) {
+        if ((Object) this instanceof RecentSearchScreenAccess access
+                && RecentSearchOverlay.drag(access.ae2RecentSearch$getSearchField(), mouseX, mouseY, button)) {
+            cir.setReturnValue(true);
+        }
+    }
+
+    @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
+    private void ae2RecentSearch$handleRecentSearchRelease(
+            double mouseX,
+            double mouseY,
+            int button,
+            CallbackInfoReturnable<Boolean> cir) {
+        if (!((Object) this instanceof RecentSearchScreenAccess access)) {
+            return;
+        }
+
+        var searchField = access.ae2RecentSearch$getSearchField();
+        if (RecentSearchOverlay.releaseDrag(searchField, mouseX, mouseY, button)) {
+            cir.setReturnValue(true);
+            return;
+        }
+
+        var releaseTarget = RecentSearchOverlay.releaseClick(searchField, button);
+        if (releaseTarget != null) {
+            RecentSearchActions.handleTarget((AEBaseScreen<?>) (Object) this, searchField, releaseTarget);
+            cir.setReturnValue(true);
+        }
+    }
+
     @Inject(method = "render", at = @At(value = "INVOKE",
             target = "Lappeng/client/gui/AEBaseScreen;renderTooltips(Lnet/minecraft/client/gui/GuiGraphics;II)V"))
     private void ae2RecentSearch$renderOverlay(

@@ -18,7 +18,7 @@ public final class RecentSearchKeyboardNavigation {
             return false;
         }
 
-        List<SearchHistoryStore.SearchEntry> entries = SearchHistoryStore.getVisibleEntries();
+        List<SearchHistoryStore.SearchEntry> entries = SearchHistoryStore.getAllVisibleEntries();
         if (entries.isEmpty()) {
             clear(searchField);
             return false;
@@ -32,7 +32,9 @@ public final class RecentSearchKeyboardNavigation {
             nextIndex = Math.floorMod(currentIndex + direction, entries.size());
         }
 
-        SELECTED_VALUES.put(searchField, entries.get(nextIndex).value());
+        var nextValue = entries.get(nextIndex).value();
+        SELECTED_VALUES.put(searchField, nextValue);
+        RecentSearchOverlay.scrollToEntry(searchField, nextValue);
         return true;
     }
 
@@ -49,7 +51,7 @@ public final class RecentSearchKeyboardNavigation {
             return null;
         }
 
-        List<SearchHistoryStore.SearchEntry> entries = SearchHistoryStore.getVisibleEntries();
+        List<SearchHistoryStore.SearchEntry> entries = SearchHistoryStore.getAllVisibleEntries();
         String value = SELECTED_VALUES.get(searchField);
         if (selectedIndex(entries, value) < 0) {
             clear(searchField);

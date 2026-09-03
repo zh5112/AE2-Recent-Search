@@ -21,6 +21,8 @@ public final class RecentSearchTerminalSettingsScreen<C extends MEStorageMenu>
     private AE2Button deleteButtonsButton;
     private AE2Button favoritesButton;
     private AE2Button keyboardNavigationButton;
+    private AE2Button mouseScrollButton;
+    private AE2Button favoriteDragButton;
     private AE2Button applyOnClickButton;
     private AE2Button syncExternalSearchButton;
 
@@ -34,6 +36,8 @@ public final class RecentSearchTerminalSettingsScreen<C extends MEStorageMenu>
         favoritesButton = widgets.addButton("favorites", favoritesText(), this::toggleFavorites);
         keyboardNavigationButton = widgets.addButton("keyboardNavigation", keyboardNavigationText(),
                 this::toggleKeyboardNavigation);
+        mouseScrollButton = widgets.addButton("mouseScroll", mouseScrollText(), this::toggleMouseScroll);
+        favoriteDragButton = widgets.addButton("favoriteDrag", favoriteDragText(), this::toggleFavoriteDrag);
         applyOnClickButton = widgets.addButton("applyOnClick", applyOnClickText(), this::toggleApplyOnClick);
         syncExternalSearchButton = widgets.addButton("syncExternalSearch", syncExternalSearchText(),
                 this::toggleSyncExternalSearch);
@@ -72,6 +76,16 @@ public final class RecentSearchTerminalSettingsScreen<C extends MEStorageMenu>
         keyboardNavigationButton.setMessage(keyboardNavigationText());
     }
 
+    private void toggleMouseScroll() {
+        SearchHistoryStore.setMouseScrollEnabled(!SearchHistoryStore.isMouseScrollEnabled());
+        mouseScrollButton.setMessage(mouseScrollText());
+    }
+
+    private void toggleFavoriteDrag() {
+        SearchHistoryStore.setFavoriteDragEnabled(!SearchHistoryStore.isFavoriteDragEnabled());
+        favoriteDragButton.setMessage(favoriteDragText());
+    }
+
     private void toggleApplyOnClick() {
         SearchHistoryStore.setApplyOnClick(!SearchHistoryStore.isApplyOnClick());
         applyOnClickButton.setMessage(applyOnClickText());
@@ -106,6 +120,18 @@ public final class RecentSearchTerminalSettingsScreen<C extends MEStorageMenu>
                 : "ae2_recent_search.button.keyboard_navigation_off");
     }
 
+    private Component mouseScrollText() {
+        return Component.translatable(SearchHistoryStore.isMouseScrollEnabled()
+                ? "ae2_recent_search.button.mouse_scroll_on"
+                : "ae2_recent_search.button.mouse_scroll_off");
+    }
+
+    private Component favoriteDragText() {
+        return Component.translatable(SearchHistoryStore.isFavoriteDragEnabled()
+                ? "ae2_recent_search.button.favorite_drag_on"
+                : "ae2_recent_search.button.favorite_drag_off");
+    }
+
     private Component applyOnClickText() {
         return Component.translatable(SearchHistoryStore.isApplyOnClick()
                 ? "ae2_recent_search.button.apply_on"
@@ -122,22 +148,22 @@ public final class RecentSearchTerminalSettingsScreen<C extends MEStorageMenu>
     public void drawFG(GuiGraphics graphics, int offsetX, int offsetY, int mouseX, int mouseY) {
         super.drawFG(graphics, offsetX, offsetY, mouseX, mouseY);
         graphics.drawString(font, Component.translatable("ae2_recent_search.settings.history"),
-                10, 30, 0x404040, false);
+                10, 28, 0x404040, false);
         graphics.drawWordWrap(font,
                 Component.translatable("ae2_recent_search.settings.history.hint"),
-                10, 94, 180, 0x666666);
+                10, 88, 180, 0x666666);
         graphics.drawString(font, Component.translatable("ae2_recent_search.settings.entry_actions"),
-                10, 124, 0x404040, false);
+                10, 116, 0x404040, false);
         graphics.drawString(font, Component.translatable("ae2_recent_search.settings.click_behavior"),
-                10, 211, 0x404040, false);
+                10, 202, 0x404040, false);
         graphics.drawWordWrap(font,
                 Component.translatable("ae2_recent_search.settings.click_behavior.hint"),
-                10, 249, 180, 0x666666);
+                10, 240, 180, 0x666666);
         graphics.drawString(font, Component.translatable("ae2_recent_search.settings.external_search"),
-                10, 263, 0x404040, false);
+                10, 264, 0x404040, false);
         graphics.drawWordWrap(font,
                 Component.translatable("ae2_recent_search.settings.external_search.hint"),
-                10, 302, 180, 0x666666);
+                10, 300, 180, 0x666666);
     }
 
     @Override

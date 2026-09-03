@@ -35,13 +35,22 @@ public final class SearchHistoryStore {
     }
 
     public static List<SearchEntry> getVisibleEntries() {
+        var allEntries = getAllVisibleEntries();
+        var visibleCount = Math.min(getMaxVisibleEntries(), allEntries.size());
+        return List.copyOf(allEntries.subList(0, visibleCount));
+    }
+
+    public static int getMaxVisibleEntries() {
+        return Math.max(1, ClientConfig.MAX_VISIBLE_ENTRIES.getAsInt());
+    }
+
+    public static List<SearchEntry> getAllVisibleEntries() {
         ensureLoaded();
         var history = currentHistory().entries();
         var visibleEntries = currentHistory().favoritesEnabled()
                 ? favoriteEntriesFirst(history)
                 : history;
-        var visibleCount = Math.min(ClientConfig.MAX_VISIBLE_ENTRIES.getAsInt(), visibleEntries.size());
-        return List.copyOf(visibleEntries.subList(0, visibleCount));
+        return List.copyOf(visibleEntries);
     }
 
     public static boolean isEnabled() {
@@ -110,6 +119,28 @@ public final class SearchHistoryStore {
         save();
     }
 
+    public static boolean isMouseScrollEnabled() {
+        ensureLoaded();
+        return currentHistory().mouseScrollEnabled();
+    }
+
+    public static void setMouseScrollEnabled(boolean mouseScrollEnabled) {
+        ensureLoaded();
+        currentHistory().setMouseScrollEnabled(mouseScrollEnabled);
+        save();
+    }
+
+    public static boolean isFavoriteDragEnabled() {
+        ensureLoaded();
+        return currentHistory().favoriteDragEnabled();
+    }
+
+    public static void setFavoriteDragEnabled(boolean favoriteDragEnabled) {
+        ensureLoaded();
+        currentHistory().setFavoriteDragEnabled(favoriteDragEnabled);
+        save();
+    }
+
     public static void record(String value) {
         if (!isEnabled() || value == null || value.isBlank()) {
             return;
@@ -122,6 +153,9 @@ public final class SearchHistoryStore {
             var entry = history.get(i);
             if (entry.value().equals(value)) {
                 favorite = entry.favorite();
+                if (favorite) {
+                    return;
+                }
                 history.remove(i);
                 break;
             }
@@ -217,6 +251,58 @@ public final class SearchHistoryStore {
         }
 
         history.add(0, new SearchEntry(value, true));
+        save();
+    }
+
+    public static void moveFavorite(String value, String beforeValue) {
+        if (value == null || value.isBlank() || value.equals(beforeValue)) {
+            return;
+        }
+
+        ensureLoaded();
+        var history = currentHistory().entries();
+        var favoriteEntries = new ArrayList<SearchEntry>();
+        SearchEntry movingEntry = null;
+        for (var entry : history) {
+            if (!entry.favorite()) {
+                continue;
+            }
+
+            if (entry.value().equals(value)) {
+                movingEntry = entry;
+            } else {
+                favoriteEntries.add(entry);
+            }
+        }
+
+        if (movingEntry == null) {
+            return;
+        }
+
+        var insertIndex = favoriteEntries.size();
+        if (beforeValue != null) {
+            for (int i = 0; i < favoriteEntries.size(); i++) {
+                if (favoriteEntries.get(i).value().equals(beforeValue)) {
+                    insertIndex = i;
+                    break;
+                }
+            }
+        }
+
+        favoriteEntries.add(insertIndex, movingEntry);
+
+        var reordered = new ArrayList<SearchEntry>(history.size());
+        var favoriteIndex = 0;
+        for (var entry : history) {
+            if (entry.favorite()) {
+                reordered.add(favoriteEntries.get(favoriteIndex++));
+            } else {
+                reordered.add(entry);
+            }
+        }
+
+        history.clear();
+        history.addAll(reordered);
         save();
     }
 
@@ -351,6 +437,12 @@ public final class SearchHistoryStore {
                     if (state.has("keyboardNavigationEnabled")) {
                         history.setKeyboardNavigationEnabled(state.get("keyboardNavigationEnabled").getAsBoolean());
                     }
+                    if (state.has("mouseScrollEnabled")) {
+                        history.setMouseScrollEnabled(state.get("mouseScrollEnabled").getAsBoolean());
+                    }
+                    if (state.has("favoriteDragEnabled")) {
+                        history.setFavoriteDragEnabled(state.get("favoriteDragEnabled").getAsBoolean());
+                    }
                 }
             }
         } catch (Exception ignored) {
@@ -403,6 +495,8 @@ public final class SearchHistoryStore {
                 state.addProperty("deleteButtonsEnabled", entry.getValue().deleteButtonsEnabled());
                 state.addProperty("favoritesEnabled", entry.getValue().favoritesEnabled());
                 state.addProperty("keyboardNavigationEnabled", entry.getValue().keyboardNavigationEnabled());
+                state.addProperty("mouseScrollEnabled", entry.getValue().mouseScrollEnabled());
+                state.addProperty("favoriteDragEnabled", entry.getValue().favoriteDragEnabled());
                 settings.add(entry.getKey(), state);
             }
 
@@ -434,6 +528,8 @@ public final class SearchHistoryStore {
         private boolean deleteButtonsEnabled = true;
         private boolean favoritesEnabled = true;
         private boolean keyboardNavigationEnabled = true;
+        private boolean mouseScrollEnabled = true;
+        private boolean favoriteDragEnabled = true;
 
         List<SearchEntry> entries() {
             return entries;
@@ -485,6 +581,22 @@ public final class SearchHistoryStore {
 
         void setKeyboardNavigationEnabled(boolean keyboardNavigationEnabled) {
             this.keyboardNavigationEnabled = keyboardNavigationEnabled;
+        }
+
+        boolean mouseScrollEnabled() {
+            return mouseScrollEnabled;
+        }
+
+        void setMouseScrollEnabled(boolean mouseScrollEnabled) {
+            this.mouseScrollEnabled = mouseScrollEnabled;
+        }
+
+        boolean favoriteDragEnabled() {
+            return favoriteDragEnabled;
+        }
+
+        void setFavoriteDragEnabled(boolean favoriteDragEnabled) {
+            this.favoriteDragEnabled = favoriteDragEnabled;
         }
 
     }

@@ -11,6 +11,10 @@
   "ae2_recent_search.button.favorites_off": "\u6536\u85cf\uff1a\u5173",
   "ae2_recent_search.button.keyboard_navigation_on": "\u952e\u76d8\u9009\u62e9\uff1a\u5f00",
   "ae2_recent_search.button.keyboard_navigation_off": "\u952e\u76d8\u9009\u62e9\uff1a\u5173",
+  "ae2_recent_search.button.mouse_scroll_on": "\u6eda\u8f6e\uff1a\u5f00",
+  "ae2_recent_search.button.mouse_scroll_off": "\u6eda\u8f6e\uff1a\u5173",
+  "ae2_recent_search.button.favorite_drag_on": "\u6536\u85cf\u62d6\u52a8\uff1a\u5f00",
+  "ae2_recent_search.button.favorite_drag_off": "\u6536\u85cf\u62d6\u52a8\uff1a\u5173",
   "ae2_recent_search.button.apply_on": "\u70b9\u51fb\uff1a\u7acb\u5373\u641c\u7d22",
   "ae2_recent_search.button.apply_off": "\u70b9\u51fb\uff1a\u4ec5\u586b\u5165",
   "ae2_recent_search.button.sync_external_on": "JEI \u540c\u6b65\uff1a\u5f00",
@@ -18,10 +22,10 @@
   "ae2_recent_search.button.clear": "\u6e05\u7a7a",
   "ae2_recent_search.settings.title": "\u6700\u8fd1\u641c\u7d22\u8bbe\u7f6e",
   "ae2_recent_search.settings.history": "\u5386\u53f2\u8bb0\u5f55",
-  "ae2_recent_search.settings.history.hint": "\u663e\u793a\u5728\u641c\u7d22\u6846\u4e0b\u65b9\u3002\u6e05\u7a7a\u53ea\u4f1a\u5220\u9664\u5f53\u524d\u73a9\u5bb6\u7684\u8bb0\u5f55\u3002",
+  "ae2_recent_search.settings.history.hint": "\u663e\u793a\u5728\u641c\u7d22\u6846\u4e0b\u65b9\u3002\u6e05\u7a7a\u4ec5\u5f71\u54cd\u5f53\u524d\u73a9\u5bb6\u3002",
   "ae2_recent_search.settings.entry_actions": "\u8bcd\u6761\u64cd\u4f5c",
   "ae2_recent_search.settings.click_behavior": "\u70b9\u51fb\u884c\u4e3a",
-  "ae2_recent_search.settings.click_behavior.hint": "\u70b9\u51fb\u5386\u53f2\u8bb0\u5f55\u65f6\uff0c\u53ef\u4ee5\u7acb\u5373\u641c\u7d22\uff0c\u4e5f\u53ef\u4ee5\u4ec5\u586b\u5165\u641c\u7d22\u6846\u3002",
+  "ae2_recent_search.settings.click_behavior.hint": "\u70b9\u51fb\u8bcd\u6761\u65f6\u7acb\u5373\u641c\u7d22\u6216\u4ec5\u586b\u5165\u641c\u7d22\u6846\u3002",
   "ae2_recent_search.settings.external_search": "\u5916\u90e8\u641c\u7d22",
-  "ae2_recent_search.settings.external_search.hint": "\u5f00\u542f\u65f6\uff0c\u70b9\u51fb\u7684\u8bcd\u6761\u4f1a\u5728 AE2 \u5916\u90e8\u641c\u7d22\u5f00\u542f\u65f6\u540c\u6b65\u5230 JEI/REI\u3002"
+  "ae2_recent_search.settings.external_search.hint": "\u4ec5\u5728 AE2 \u5916\u90e8\u641c\u7d22\u5f00\u542f\u65f6\u540c\u6b65\u5230 JEI/REI\u3002"
 }

@@ -10,12 +10,14 @@
   },
   "widgets": {
     "back": { "left": 176, "top": -5, "width": 20, "height": 20 },
-    "enabled": { "left": 10, "top": 43, "width": 180, "height": 20 },
-    "clear": { "left": 10, "top": 68, "width": 180, "height": 20 },
-    "deleteButtons": { "left": 10, "top": 137, "width": 180, "height": 20 },
-    "favorites": { "left": 10, "top": 162, "width": 180, "height": 20 },
-    "keyboardNavigation": { "left": 10, "top": 187, "width": 180, "height": 20 },
-    "applyOnClick": { "left": 10, "top": 224, "width": 180, "height": 20 },
+    "enabled": { "left": 10, "top": 39, "width": 180, "height": 20 },
+    "clear": { "left": 10, "top": 63, "width": 180, "height": 20 },
+    "deleteButtons": { "left": 10, "top": 128, "width": 86, "height": 20 },
+    "favorites": { "left": 104, "top": 128, "width": 86, "height": 20 },
+    "keyboardNavigation": { "left": 10, "top": 152, "width": 86, "height": 20 },
+    "mouseScroll": { "left": 104, "top": 152, "width": 86, "height": 20 },
+    "favoriteDrag": { "left": 10, "top": 176, "width": 180, "height": 20 },
+    "applyOnClick": { "left": 10, "top": 214, "width": 180, "height": 20 },
     "syncExternalSearch": { "left": 10, "top": 276, "width": 180, "height": 20 }
   }
 }
